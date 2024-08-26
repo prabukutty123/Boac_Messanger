@@ -71,32 +71,26 @@ app.post('/send-otp', async (req, res) => {
 });
 
 // Endpoint to verify OTP and register/login user
-app.post('/verify-otp', async (req, res) => {
+app.post('/verify-otp', (req, res) => {
   const { phoneNumber, otp } = req.body;
 
-  if (!phoneNumber || !otp) {
-    return res.status(400).json({ success: false, message: 'Phone number and OTP are required' });
-  }
+  // Check if the OTP matches
+  if (otps[phoneNumber] && otps[phoneNumber] === otp) {
+    // Generate a JWT token
+    const token = jwt.sign({ phoneNumber }, JWT_SECRET, { expiresIn: '1h' });
 
-  try {
-    const record = await Otp.findOne({ phoneNumber, otp });
+    // Clear the OTP (In a real application, consider marking it as used in the database)
+    delete otps[phoneNumber];
 
-    // Log the phone number and OTP for verification
-    console.log('Phone number:', phoneNumber);
-    console.log('Entered OTP:', otp);
-
-    if (record) {
-      res.json({ success: true, message: 'OTP verified successfully' });
-      console.log('Verification successful');
-    } else {
-      res.status(400).json({ success: false, message: 'Invalid OTP' });
-      console.log('Invalid OTP');
-    }
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    res.status(500).json({ success: false, message: 'Error verifying OTP', error: error.message });
+    // Send the token in the response
+    res.json({ token });
+  } else {
+    // If OTP is invalid
+    res.status(400).json({ message: 'Invalid OTP' });
   }
 });
+
+
 // Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];

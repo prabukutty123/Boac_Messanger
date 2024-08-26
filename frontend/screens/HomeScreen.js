@@ -11,7 +11,7 @@ const HomeScreen = ({ route, navigation }) => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://192.168.0.87:3001/users', {
+            const response = await fetch('http://192.168.0.84:3001/users', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

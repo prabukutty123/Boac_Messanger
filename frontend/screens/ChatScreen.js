@@ -11,20 +11,22 @@ export default function ChatScreen() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.87:3001/get-messages/${user._id}`, {
+        const response = await axios.get(`http://192.168.0.84:3001/get-messages/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        // Formatting messages to work with GiftedChat
         const formattedMessages = response.data.messages.map((msg) => ({
           _id: msg._id,
           text: msg.message,
-          createdAt: msg.timestamp,
+          createdAt: new Date(msg.timestamp),  // Ensure timestamp is in Date format
           user: {
-            _id: msg.sender === user._id ? 2 : 1, // Adjust user IDs appropriately
-            name: msg.sender === user._id ? user.name : 'You', // Adjust names
+            _id: msg.sender === user._id ? user._id : 'other',  // Ensure correct user ID
+            name: msg.sender === user._id ? user.name : 'Other User', // Adjust names
           },
         }));
 
-        setMessages(formattedMessages);
+        setMessages(formattedMessages.reverse()); // Reverse to show the latest message at the bottom
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
@@ -39,7 +41,7 @@ export default function ChatScreen() {
     const message = newMessages[0];
 
     try {
-      await axios.post('http://192.168.0.87:3001/send-message', {
+      await axios.post('http://192.168.0.84:3001/send-message', {
         receiverId: user._id,
         message: message.text,
       }, {
@@ -52,5 +54,11 @@ export default function ChatScreen() {
     }
   };
 
-  return <GiftedChat messages={messages} onSend={(messages) => onSend(messages)} user={{ _id: 1 }} />;
+  return (
+    <GiftedChat
+      messages={messages}
+      onSend={(messages) => onSend(messages)}
+      user={{ _id: 'other' }}  // Current user should be 'other' to distinguish
+    />
+  );
 }

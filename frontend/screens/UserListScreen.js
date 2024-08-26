@@ -13,7 +13,7 @@ export default function UserListScreen({ token, navigation }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://192.168.0.87:3001/user-list', {
+        const response = await axios.get('http://192.168.0.84:3001/user-list', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(response.data.users);

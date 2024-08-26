@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert, AsyncStorage } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VerifyOtpScreen({ route, navigation }) {
   const { phoneNumber } = route.params;
@@ -8,21 +9,27 @@ export default function VerifyOtpScreen({ route, navigation }) {
 
   const verifyOtp = async () => {
     try {
-      const response = await axios.post('http://192.168.0.202:3001/verify-otp', { phoneNumber, otp });
+      const response = await axios.post('http://192.168.0.84:3001/verify-otp', { phoneNumber, otp });
+      
+      // Log the response data to inspect the structure
+      console.log('Response data:', response.data);
+
       const { token } = response.data;
 
       if (token) {
-        // Save the token in AsyncStorage or your preferred storage
-        await AsyncStorage.setItem('userToken', token);
+        // Store the token in AsyncStorage
+        await AsyncStorage.setItem('token', token);
 
-        // Navigate to UpdateProfile screen
-        navigation.navigate('UpdateProfile');
+        // Navigate to the Home screen
+        navigation.navigate('UpdateProfile',{ token });
       } else {
-        Alert.alert('OTP Verification failed', 'Please try again.');
+        Alert.alert('Error', 'Token not found in the response');
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('OTP Verification failed', 'Please try again.');
+      // Log the error response for debugging
+      console.error('Error response:', error.response ? error.response.data : error.message);
+      
+      Alert.alert('Error', error.response ? error.response.data.message : error.message);
     }
   };
 

@@ -10,7 +10,7 @@ export default function UpdateProfileScreen({ route, navigation }) {
 
   const updateProfile = async () => {
     try {
-      await axios.post('http://192.168.0.202:3001/update-profile', { name, email }, {
+      await axios.post('http://192.168.0.84:3001/update-profile', { name, email }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigation.navigate('Main', { token,updatedName: name, updatedEmail: email });
