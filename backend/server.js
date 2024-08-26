@@ -16,7 +16,6 @@ mongoose.connect('mongodb://localhost:27017/myfast', {
   // useNewUrlParser: true,
   // useUnifiedTopology: true,
 });
-
 const userSchema = new mongoose.Schema({
   phoneNumber: String,
   name: String,
