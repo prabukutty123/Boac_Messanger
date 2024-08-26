@@ -4,13 +4,10 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
-
 const app = express();
 app.use(bodyParser.json());
 
 const SECRET_KEY = 'bxctasRA5j3ZK7E67oljevClO5j8QilVEaf6eGLXMErbRZ3toiCa2QXbFjg4'; // Use a strong, unique key
-
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/myfast', {
   // useNewUrlParser: true,
@@ -171,7 +168,7 @@ app.get('/get-messages/:receiverId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch messages', error });
   }
 });
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3009;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
