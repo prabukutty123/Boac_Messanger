@@ -1,0 +1,8 @@
+{
+  "name": "MyNewProject",
+  "displayName": "MyNewProject",
+  "plugins": [
+    "@react-native-firebase/auth",
+    "@react-native-firebase/app"
+  ]
+}
