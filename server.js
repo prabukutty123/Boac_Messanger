@@ -94,13 +94,25 @@ app.post('/verify-otp', async (req, res) => {
   try {
     const record = await Otp.findOne({ phoneNumber, otp });
 
-    // Log  phone number and OTP for verification
+    // Log phone number and OTP for verification
     console.log('Phone number:', phoneNumber);
     console.log('Entered OTP:', otp);
 
     if (record) {
-      res.json({ success: true, message: 'OTP verified successfully' });
-      console.log('Verification successful');
+      // Check if the user already exists
+      let user = await User.findOne({ phoneNumber });
+
+      if (!user) {
+        // If the user doesn't exist, create a new user
+        user = new User({ phoneNumber });
+        await user.save();
+      }
+
+      // Generate a JWT token
+      const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
+
+      res.json({ success: true, message: 'OTP verified successfully', token });
+      console.log('Verification successful, token generated:', token);
     } else {
       res.status(400).json({ success: false, message: 'Invalid OTP' });
       console.log('Invalid OTP');
@@ -110,6 +122,7 @@ app.post('/verify-otp', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error verifying OTP', error: error.message });
   }
 });
+
 
 // Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
