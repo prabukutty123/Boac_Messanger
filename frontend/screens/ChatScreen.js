@@ -11,7 +11,7 @@ export default function ChatScreen() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.84:3009/get-messages/${user._id}`, {
+        const response = await axios.get(`http://13.126.51.141:3009/get-messages/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -41,7 +41,7 @@ export default function ChatScreen() {
     const message = newMessages[0];
 
     try {
-      await axios.post('http://192.168.0.84:3009/send-message', {
+      await axios.post('http://13.126.51.141:3009/send-message', {
         receiverId: user._id,
         message: message.text,
       }, {

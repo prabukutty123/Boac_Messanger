@@ -71,12 +71,12 @@ app.post('/verify-otp', (req, res) => {
   const { phoneNumber, otp } = req.body;
 
   // Check if the OTP matches
-  if (otps[phoneNumber] && otps[phoneNumber] === otp) {
+  if (otpStore[phoneNumber] && otpStore[phoneNumber] === otp) {
     // Generate a JWT token
-    const token = jwt.sign({ phoneNumber }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ phoneNumber }, SECRET_KEY, { expiresIn: '1h' });
 
     // Clear the OTP (In a real application, consider marking it as used in the database)
-    delete otps[phoneNumber];
+    delete otpStore[phoneNumber];
 
     // Send the token in the response
     res.json({ token });

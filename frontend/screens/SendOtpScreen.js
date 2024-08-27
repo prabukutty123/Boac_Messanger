@@ -7,7 +7,7 @@ export default function SendOtpScreen({ navigation }) {
 
   const sendOtp = async () => {
     try {
-      await axios.post('http://192.168.0.84:3009/send-otp', { phoneNumber });
+      await axios.post('http://13.126.51.141:3009/send-otp', { phoneNumber });
       Alert.alert('OTP sent successfully');
       navigation.navigate('VerifyOtp', { phoneNumber });
     } catch (error) {

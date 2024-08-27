@@ -9,7 +9,7 @@ export default function VerifyOtpScreen({ route, navigation }) {
 
   const verifyOtp = async () => {
     try {
-      const response = await axios.post('http://192.168.0.84:3009/verify-otp', { phoneNumber, otp });
+      const response = await axios.post('http://13.126.51.141:3009/verify-otp', { phoneNumber, otp });
       
       // Log the response data to inspect the structure
       console.log('Response data:', response.data);
