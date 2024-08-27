@@ -14,6 +14,14 @@ mongoose.connect('mongodb://localhost:27017/myfast', {
   // useUnifiedTopology: true,
 }) .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('Error connecting to MongoDB:', err));
+// OTP Schema
+const otpSchema = new mongoose.Schema({
+  phoneNumber: { type: String, required: true },
+  otp: { type: String, required: true },
+  createdAt: { type: Date, expires: 300, default: Date.now }  // OTP expires in 5 minutes
+});
+
+const Otp = mongoose.model('Otp', otpSchema);
 const userSchema = new mongoose.Schema({
   phoneNumber: String,
   name: String,
@@ -38,55 +46,70 @@ let otpStore = {}; // This is a temporary storage, ideally, use a database
 // Endpoint to send OTP
 app.post('/send-otp', async (req, res) => {
   const { phoneNumber } = req.body;
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
 
-  // Save OTP in the store
-  otpStore[phoneNumber] = otp;
+  if (!phoneNumber) {
+    return res.status(400).json({ success: false, message: 'Phone number is required' });
+  }
 
-  // Send OTP using Fast2SMS
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
   try {
-    const response = await axios.post(
-      'https://www.fast2sms.com/dev/bulkV2',
-      {
-        route: 'q',
-        message: `Your OTP is ${otp}`,
-        language: 'english',
-        flash: 0,
-        numbers: phoneNumber,
-      },
-      {
-        headers: {
-          authorization: FAST2SMS_API_KEY,
-        }
-      }
-    );
+    await new Otp({ phoneNumber, otp }).save();
 
-    res.status(200).send({ message: 'OTP sent successfully!' });
+    const response = await axios.post('https://www.fast2sms.com/dev/bulkV2', {
+      route: 'otp',
+      sender_id: 'FSTSMS',
+      message: `Your OTP code is {{otp}}`,
+      variables_values: otp,
+      language: 'english',
+      flash: '0',
+      numbers: phoneNumber,
+    }, {
+      headers: {
+        'authorization': FAST2SMS_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.return) {
+      res.json({ success: true, message: 'OTP sent successfully' });
+      console.log("OTP sent successfully");
+    } else {
+      res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    }
   } catch (error) {
-    res.status(500).send({ message: 'Failed to send OTP', error: error.message });
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ success: false, message: 'Error sending OTP', error: error.message });
   }
 });
-
 // Endpoint to verify OTP and register/login user
-app.post('/verify-otp', (req, res) => {
+// Verify OTP Endpoint
+app.post('/verify-otp', async (req, res) => {
   const { phoneNumber, otp } = req.body;
 
-  // Check if the OTP matches
-  if (otpStore[phoneNumber] && otpStore[phoneNumber] === otp) {
-    // Generate a JWT token
-    const token = jwt.sign({ phoneNumber }, SECRET_KEY, { expiresIn: '1h' });
+  if (!phoneNumber || !otp) {
+    return res.status(400).json({ success: false, message: 'Phone number and OTP are required' });
+  }
 
-    // Clear the OTP (In a real application, consider marking it as used in the database)
-    delete otpStore[phoneNumber];
+  try {
+    const record = await Otp.findOne({ phoneNumber, otp });
 
-    // Send the token in the response
-    res.json({ token });
-  } else {
-    // If OTP is invalid
-    res.status(400).json({ message: 'Invalid OTP' });
+    // Log  phone number and OTP for verification
+    console.log('Phone number:', phoneNumber);
+    console.log('Entered OTP:', otp);
+
+    if (record) {
+      res.json({ success: true, message: 'OTP verified successfully' });
+      console.log('Verification successful');
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid OTP' });
+      console.log('Invalid OTP');
+    }
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ success: false, message: 'Error verifying OTP', error: error.message });
   }
 });
-
 
 // Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
